@@ -1,0 +1,9 @@
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? ''
+
+export function buildApiUrl(path: string) {
+  if (!apiBaseUrl) {
+    return path
+  }
+
+  return `${apiBaseUrl}${path.startsWith('/') ? path : `/${path}`}`
+}
