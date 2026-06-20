@@ -18,6 +18,7 @@ class AuthAccountManagementTest extends TestCase
         $this->seed();
 
         $token = $this->loginToken();
+        $adminUser = User::query()->where('username', 'admin')->firstOrFail();
 
         $this->withHeader('Authorization', 'Bearer '.$token)
             ->patchJson('/api/v1/auth/profile', [
@@ -32,7 +33,7 @@ class AuthAccountManagementTest extends TestCase
             ->assertJsonPath('data.email', 'admin-baru@local.test');
 
         $this->assertDatabaseHas('users', [
-            'id' => 1,
+            'id' => $adminUser->id,
             'name' => 'Admin Baru',
             'username' => 'admin-baru',
             'email' => 'admin-baru@local.test',
@@ -44,6 +45,7 @@ class AuthAccountManagementTest extends TestCase
         $this->seed();
 
         $token = $this->loginToken();
+        $user = User::query()->where('username', 'admin')->firstOrFail();
 
         $this->withHeader('Authorization', 'Bearer '.$token)
             ->putJson('/api/v1/auth/password', [
@@ -54,7 +56,7 @@ class AuthAccountManagementTest extends TestCase
             ->assertOk()
             ->assertJsonPath('message', 'Password berhasil diperbarui.');
 
-        $user = User::query()->findOrFail(1);
+        $user->refresh();
 
         $this->assertTrue(Hash::check('new-password-123', $user->password));
     }
@@ -64,6 +66,7 @@ class AuthAccountManagementTest extends TestCase
         $this->seed();
 
         $token = $this->loginToken();
+        $user = User::query()->where('username', 'admin')->firstOrFail();
 
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->post('/api/v1/auth/profile/avatar', [
@@ -79,7 +82,7 @@ class AuthAccountManagementTest extends TestCase
         $this->assertNotNull($avatarUrl);
         $this->assertStringContainsString('/uploads/profile-avatars/', $avatarUrl);
 
-        $user = User::query()->findOrFail(1);
+        $user->refresh();
 
         $this->assertSame($avatarUrl, $user->avatar_url);
 

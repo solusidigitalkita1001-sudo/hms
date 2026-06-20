@@ -18,6 +18,10 @@ class RoomType extends Model
         'weekend_price',
         'extra_bed_price',
         'description',
+        'size_sqm',
+        'bed_type',
+        'smoking_allowed',
+        'amenities',
         'is_active',
     ];
 
@@ -28,6 +32,8 @@ class RoomType extends Model
             'base_price' => 'decimal:2',
             'weekend_price' => 'decimal:2',
             'extra_bed_price' => 'decimal:2',
+            'size_sqm' => 'decimal:2',
+            'smoking_allowed' => 'boolean',
             'is_active' => 'boolean',
         ];
     }

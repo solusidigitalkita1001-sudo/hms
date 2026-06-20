@@ -5,7 +5,7 @@ namespace App\Application\Portal\Services;
 use App\Application\Portal\DataTransferObjects\GuestPortalData;
 use App\Domain\Property\Models\Property;
 use App\Domain\Property\Models\PropertyFacility;
-use App\Domain\Room\Enums\RoomStatus;
+use App\Domain\Room\Enums\OccupancyStatus;
 use App\Domain\Room\Models\Room;
 use App\Domain\Room\Models\RoomType;
 use App\Domain\Setting\Models\Setting;
@@ -59,7 +59,7 @@ class GuestPortalService
                 $availableRooms = Room::query()
                     ->where('room_type_id', $roomType->id)
                     ->where('is_active', true)
-                    ->where('current_status', RoomStatus::Available->value)
+                    ->where('current_status', OccupancyStatus::Available->value)
                     ->count();
 
                 return [
@@ -143,12 +143,12 @@ class GuestPortalService
             summary: [
                 'available_rooms' => Room::query()
                     ->where('property_id', $property->id)
-                    ->where('current_status', RoomStatus::Available->value)
+                    ->where('current_status', OccupancyStatus::Available->value)
                     ->where('is_active', true)
                     ->count(),
                 'occupied_rooms' => Room::query()
                     ->where('property_id', $property->id)
-                    ->where('current_status', RoomStatus::Occupied->value)
+                    ->where('current_status', OccupancyStatus::Occupied->value)
                     ->where('is_active', true)
                     ->count(),
                 'featured_facilities' => count(array_filter($facilities, fn (array $facility): bool => $facility['is_featured'])),

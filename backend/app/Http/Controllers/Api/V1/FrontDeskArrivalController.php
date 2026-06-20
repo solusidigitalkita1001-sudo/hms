@@ -7,11 +7,13 @@ use App\Application\FrontDesk\Actions\CompleteCheckinAction;
 use App\Application\FrontDesk\Actions\VerifyArrivalIdentityAction;
 use App\Application\FrontDesk\Services\ArrivalQueueService;
 use App\Application\FrontDesk\Services\AssignableRoomService;
+use App\Domain\FrontDesk\Services\WalkInService;
 use App\Domain\Reservation\Models\Reservation;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\AssignRoomToArrivalRequest;
 use App\Http\Requests\Api\V1\CompleteCheckinRequest;
 use App\Http\Requests\Api\V1\VerifyArrivalIdentityRequest;
+use App\Http\Requests\Api\V1\WalkInReservationRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
@@ -24,6 +26,7 @@ class FrontDeskArrivalController extends Controller
         private readonly AssignRoomToArrivalAction $assignRoomToArrivalAction,
         private readonly VerifyArrivalIdentityAction $verifyArrivalIdentityAction,
         private readonly CompleteCheckinAction $completeCheckinAction,
+        private readonly WalkInService $walkInService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -193,5 +196,41 @@ class FrontDeskArrivalController extends Controller
             ],
             'meta' => [],
         ]);
+    }
+
+    /**
+     * Create walk-in reservation
+     */
+    public function walkIn(WalkInReservationRequest $request): JsonResponse
+    {
+        try {
+            $payload = $request->validated();
+            $payload['property_id'] = $request->query('property_id');
+
+            $result = $this->walkInService->createWalkIn(
+                $payload,
+                $request->user(),
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Walk-in reservation berhasil dibuat.',
+                'data' => $result,
+                'meta' => [],
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create walk-in reservation.',
+                'errors' => [
+                    'general' => $e->getMessage(),
+                ],
+            ], 500);
+        }
     }
 }

@@ -215,13 +215,12 @@ onBeforeUnmount(() => {
   background: var(--color-surface, var(--portal-surface));
   border: 1px solid var(--color-border, var(--portal-border));
   box-shadow: var(--shadow-lg, var(--portal-shadow));
-  backdrop-filter: blur(20px);
 }
 
 .search-select__search {
   min-height: 48px;
   padding: 0 14px;
-  border-radius: 16px;
+  border-radius: 6px;
   background: var(--color-surface-strong, var(--portal-surface-strong));
   display: flex;
   align-items: center;

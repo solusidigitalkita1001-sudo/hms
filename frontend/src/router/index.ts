@@ -3,9 +3,17 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthSession } from '../composables/useAuthSession'
 import { workspaceRoutes } from '../config/workspace'
 import AuthCallbackPage from '../pages/AuthCallbackPage.vue'
+import BillingInvoicesPage from '../pages/BillingInvoicesPage.vue'
 import DashboardPage from '../pages/DashboardPage.vue'
 import FrontDeskArrivalsPage from '../pages/FrontDeskArrivalsPage.vue'
+import FrontDeskDeparturesPage from '../pages/FrontDeskDeparturesPage.vue'
+import GuestBookingConfirmPage from '../pages/GuestBookingConfirmPage.vue'
+import GuestBookingDetailPage from '../pages/GuestBookingDetailPage.vue'
+import GuestBookingPage from '../pages/GuestBookingPage.vue'
+import GuestConditionReportPage from '../pages/GuestConditionReportPage.vue'
+import GuestMyBookingsPage from '../pages/GuestMyBookingsPage.vue'
 import GuestPortalPage from '../pages/GuestPortalPage.vue'
+import GuestRoomSearchPage from '../pages/GuestRoomSearchPage.vue'
 import LoginPage from '../pages/LoginPage.vue'
 import ModuleWorkspacePage from '../pages/ModuleWorkspacePage.vue'
 import PortalCmsPage from '../pages/PortalCmsPage.vue'
@@ -54,6 +62,60 @@ const routes = [
     },
   },
   {
+    path: '/portal/:propertyCode/search',
+    name: 'guest-room-search',
+    component: GuestRoomSearchPage,
+    meta: {
+      title: 'Search Rooms',
+      public: true,
+    },
+  },
+  {
+    path: '/portal/:propertyCode/book',
+    name: 'guest-booking',
+    component: GuestBookingPage,
+    meta: {
+      title: 'Booking',
+      public: true,
+    },
+  },
+  {
+    path: '/portal/:propertyCode/confirm/:bookingCode',
+    name: 'guest-booking-confirm',
+    component: GuestBookingConfirmPage,
+    meta: {
+      title: 'E-Ticket',
+      public: true,
+    },
+  },
+  {
+    path: '/portal/:propertyCode/my-bookings',
+    name: 'guest-my-bookings',
+    component: GuestMyBookingsPage,
+    meta: {
+      title: 'My Bookings',
+      public: true,
+    },
+  },
+  {
+    path: '/portal/:propertyCode/my-bookings/:bookingId',
+    name: 'guest-booking-detail',
+    component: GuestBookingDetailPage,
+    meta: {
+      title: 'Booking Detail',
+      public: true,
+    },
+  },
+  {
+    path: '/portal/:propertyCode/my-bookings/:bookingId/condition-report',
+    name: 'guest-condition-report',
+    component: GuestConditionReportPage,
+    meta: {
+      title: 'Condition Report',
+      public: true,
+    },
+  },
+  {
     path: '/settings',
     redirect: '/settings/general',
   },
@@ -93,8 +155,26 @@ const routes = [
       requiresAuth: true,
     },
   },
+  {
+    path: '/front-desk/departures',
+    name: 'front-desk-departures-page',
+    component: FrontDeskDeparturesPage,
+    meta: {
+      title: 'Departures',
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/billing/invoices/:id',
+    name: 'billing-invoice-detail-page',
+    component: BillingInvoicesPage,
+    meta: {
+      title: 'Invoice Detail',
+      requiresAuth: true,
+    },
+  },
   ...workspaceRoutes
-    .filter((route) => route.path !== '/front-desk/arrivals')
+    .filter((route) => route.path !== '/front-desk/arrivals' && route.path !== '/front-desk/departures' && route.path !== '/billing/invoices')
     .map((route) => ({
     ...route,
     component: ModuleWorkspacePage,
@@ -124,17 +204,27 @@ const resolveRouteTitle = (to: { name?: unknown; meta: Record<string, unknown> }
         'settings-general-page': 'Settings',
         'settings-portal-cms-page': 'Portal CMS',
         'front-desk-arrivals-page': 'Arrivals',
+        'front-desk-departures-page': 'Departures',
         'reservation-inquiries-page': 'Booking Inquiries',
+        'billing-invoice-detail-page': 'Invoice Detail',
       }
     : {
         dashboard: 'Dashboard',
         login: 'Login',
         'auth-callback': 'Google Callback',
         'guest-portal': 'Portal Tamu',
+        'guest-room-search': 'Cari Kamar',
+        'guest-booking': 'Booking',
+        'guest-booking-confirm': 'E-Ticket',
+        'guest-my-bookings': 'Booking Saya',
+        'guest-booking-detail': 'Detail Booking',
+        'guest-condition-report': 'Laporan Kondisi Kamar',
         'settings-general-page': 'Settings',
         'settings-portal-cms-page': 'Portal CMS',
         'front-desk-arrivals-page': 'Arrivals',
+        'front-desk-departures-page': 'Departures',
         'reservation-inquiries-page': 'Booking Inquiries',
+        'billing-invoice-detail-page': 'Invoice Detail',
       }
 
   const routeName = typeof to.name === 'string' ? to.name : ''

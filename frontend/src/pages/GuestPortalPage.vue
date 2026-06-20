@@ -712,10 +712,10 @@ watch(inquiryRoomType, (roomType) => {
               <span>{{ item.label }}</span>
               <strong>{{ item.value }}</strong>
             </div>
-            <button type="button" class="portal-search-button" @click="openInquiryModal()">
+            <router-link :to="`/portal/${propertyCode}/search`" class="portal-search-button">
               {{ portal.cms.hero_search_button_label }}
               <Icon :icon="mdiArrowRight" />
-            </button>
+            </router-link>
           </div>
         </div>
       </section>

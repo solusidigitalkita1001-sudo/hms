@@ -27,6 +27,6 @@ class GuestPortalTest extends TestCase
                 'code' => 'FAM',
                 'available_rooms' => 1,
             ])
-            ->assertJsonPath('data.summary.available_rooms', 3);
+            ->assertJsonPath('data.summary.available_rooms', 4);
     }
 }

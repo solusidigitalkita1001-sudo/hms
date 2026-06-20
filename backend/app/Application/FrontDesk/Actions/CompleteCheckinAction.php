@@ -4,10 +4,12 @@ namespace App\Application\FrontDesk\Actions;
 
 use App\Application\FrontDesk\Services\FrontDeskStatusRecorder;
 use App\Application\FrontDesk\Services\StayGuestSyncService;
+use App\Application\Settings\Services\BusinessDateService;
 use App\Domain\FrontDesk\Models\FrontDeskAuditLog;
 use App\Domain\Reservation\Models\Reservation;
 use App\Domain\Reservation\Models\ReservationCheckinSession;
 use App\Domain\Reservation\Models\StayRecord;
+use App\Domain\Room\Enums\OccupancyStatus;
 use App\Domain\Room\Models\RoomAvailabilityLock;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +19,7 @@ class CompleteCheckinAction
     public function __construct(
         private readonly FrontDeskStatusRecorder $statusRecorder,
         private readonly StayGuestSyncService $stayGuestSyncService,
+        private readonly BusinessDateService $businessDateService,
     ) {}
 
     public function handle(Reservation $reservation, array $payload, int $actorUserId): StayRecord
@@ -59,6 +62,7 @@ class CompleteCheckinAction
 
         return DB::transaction(function () use ($reservation, $payload, $actorUserId, $checkinSession): StayRecord {
             $checkedInAt = now();
+            $businessDate = $this->businessDateService->currentBusinessDate($reservation->property);
             $previousReservationStatus = $reservation->reservation_status;
             $room = $reservation->assignedRoom()->lockForUpdate()->firstOrFail();
             $previousRoomStatus = $room->current_status;
@@ -70,7 +74,7 @@ class CompleteCheckinAction
                     'room_id' => $reservation->assigned_room_id,
                     'primary_guest_id' => $reservation->primary_guest_id,
                     'stay_status' => 'in_house',
-                    'check_in_business_date' => $checkedInAt->toDateString(),
+                    'check_in_business_date' => $businessDate->toDateString(),
                     'actual_check_in_at' => $checkedInAt,
                     'expected_check_out_at' => $reservation->check_out_date?->toDateString()
                         ? $reservation->check_out_date->setTime(12, 0)
@@ -92,7 +96,7 @@ class CompleteCheckinAction
             ])->save();
 
             $room->forceFill([
-                'current_status' => 'occupied',
+                'current_status' => OccupancyStatus::Occupied,
             ])->save();
 
             $checkinSession->fill([
@@ -134,8 +138,8 @@ class CompleteCheckinAction
             $this->statusRecorder->recordRoomTransition(
                 $room,
                 'occupancy',
-                $previousRoomStatus,
-                'occupied',
+                $previousRoomStatus?->value ?? $previousRoomStatus,
+                OccupancyStatus::Occupied->value,
                 $actorUserId,
                 'Room occupied after check-in completed.',
                 StayRecord::class,

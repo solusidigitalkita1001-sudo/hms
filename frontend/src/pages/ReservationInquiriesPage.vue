@@ -88,6 +88,7 @@ const currentView = ref<InquiryViewMode>('table')
 const selectedInquiry = ref<ReservationInquiry | null>(null)
 const insightModalOpen = ref(false)
 const insightTab = ref<InsightTab>('summary')
+const pendingStatus = ref<InquiryStatus | null>(null)
 const meta = ref<InquiryMeta>({
   total: 0,
   current_page: 1,
@@ -169,6 +170,9 @@ const copy = computed(() => {
       inquiryDetail: 'Inquiry detail',
       actionStatus: 'Status action',
       saving: 'Saving...',
+      saveChanges: 'Save Changes',
+      selectNewStatus: 'Select new status',
+      detailsList: 'Details',
     }
   }
 
@@ -230,6 +234,9 @@ const copy = computed(() => {
     inquiryDetail: 'Inquiry detail',
     actionStatus: 'Action status',
     saving: 'Menyimpan...',
+    saveChanges: 'Simpan Perubahan',
+    selectNewStatus: 'Pilih status baru',
+    detailsList: 'Detail',
   }
 })
 
@@ -389,10 +396,12 @@ const loadInquiries = async (mode: 'initial' | 'refresh' = 'initial') => {
 
 const openInquiryDetail = (inquiry: ReservationInquiry) => {
   selectedInquiry.value = inquiry
+  pendingStatus.value = null
 }
 
 const closeInquiryDetail = () => {
   selectedInquiry.value = null
+  pendingStatus.value = null
 }
 
 const openInsightModal = (tab: InsightTab = 'summary') => {
@@ -455,6 +464,8 @@ const updateInquiryStatus = async (inquiryId: number, status: InquiryStatus) => 
     if (selectedInquiry.value) {
       selectedInquiry.value = inquiries.value.find((item) => item.id === selectedInquiry.value?.id) ?? null
     }
+
+    pendingStatus.value = null
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : copy.value.statusUpdateFailed
   } finally {
@@ -796,42 +807,97 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <div class="inquiry-detail-grid">
-          <div class="inquiry-card__block">
-            <span>{{ copy.contact }}</span>
-            <strong>{{ selectedInquiry.phone }}</strong>
-            <small>{{ selectedInquiry.email || copy.emailMissing }}</small>
-          </div>
-          <div class="inquiry-card__block">
-            <span>{{ copy.stay }}</span>
-            <strong>{{ formatDate(selectedInquiry.check_in_date) }} → {{ formatDate(selectedInquiry.check_out_date) }}</strong>
-            <small>{{ selectedInquiry.guest_count }} {{ copy.guests }}</small>
-          </div>
-          <div class="inquiry-card__block">
-            <span>Status</span>
-            <strong>{{ statusLabelMap[selectedInquiry.status] }}</strong>
-            <small>{{ formatDateTime(selectedInquiry.created_at) }}</small>
-          </div>
-        </div>
+        <div class="inquiry-modal-body">
+          <div class="inquiry-modal-info-section">
+            <h3>{{ copy.detailsList }}</h3>
+            <div class="inquiry-info-grid">
+              <div class="inquiry-info-card">
+                <div class="inquiry-info-card__icon">
+                  <Icon :icon="mdiInformationOutline" />
+                </div>
+                <div class="inquiry-info-card__content">
+                  <span>{{ copy.contact }}</span>
+                  <strong>{{ selectedInquiry.phone }}</strong>
+                  <small>{{ selectedInquiry.email || copy.emailMissing }}</small>
+                </div>
+              </div>
 
-        <div class="inquiry-card__notes">
-          <span>{{ copy.guestNotes }}</span>
-          <p>{{ selectedInquiry.notes || copy.noNotes }}</p>
+              <div class="inquiry-info-card">
+                <div class="inquiry-info-card__icon">
+                  <Icon :icon="mdiViewListOutline" />
+                </div>
+                <div class="inquiry-info-card__content">
+                  <span>{{ copy.stay }}</span>
+                  <strong>{{ formatDate(selectedInquiry.check_in_date) }} → {{ formatDate(selectedInquiry.check_out_date) }}</strong>
+                  <small>{{ selectedInquiry.guest_count }} {{ copy.guests }} · {{ selectedInquiry.room_type.name }}</small>
+                </div>
+              </div>
+
+              <div class="inquiry-info-card">
+                <div class="inquiry-info-card__icon">
+                  <Icon :icon="mdiTimelineTextOutline" />
+                </div>
+                <div class="inquiry-info-card__content">
+                  <span>Status</span>
+                  <strong :class="statusBadgeClassMap[selectedInquiry.status]">{{ statusLabelMap[selectedInquiry.status] }}</strong>
+                  <small>{{ formatDateTime(selectedInquiry.created_at) }}</small>
+                </div>
+              </div>
+
+              <div class="inquiry-info-card">
+                <div class="inquiry-info-card__icon">
+                  <Icon :icon="mdiRefresh" />
+                </div>
+                <div class="inquiry-info-card__content">
+                  <span>{{ copy.source }}</span>
+                  <strong>{{ selectedInquiry.source }}</strong>
+                  <small>{{ selectedInquiry.property.code }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="inquiry-modal-notes-section">
+            <h3>{{ copy.guestNotes }}</h3>
+            <p class="inquiry-notes-text">{{ selectedInquiry.notes || copy.noNotes }}</p>
+          </div>
         </div>
 
         <div class="inquiry-modal-card__footer">
-          <span class="section-kicker">{{ copy.actionStatus }}</span>
-          <div class="inquiry-card__actions">
+          <div class="inquiry-modal-info-section">
+            <h3>{{ copy.actionStatus }}</h3>
+            <div class="inquiry-status-card">
+              <div class="inquiry-status-current-wrapper">
+                <span>{{ copy.inquiryDetail }}</span>
+                <div class="inquiry-status-badge" :class="statusBadgeClassMap[selectedInquiry.status]">
+                  {{ statusLabelMap[selectedInquiry.status] }}
+                </div>
+              </div>
+              <div class="inquiry-status-divider">
+                <div class="inquiry-status-line"></div>
+                <Icon :icon="mdiRefresh" class="inquiry-status-icon" />
+                <div class="inquiry-status-line"></div>
+              </div>
+              <div class="inquiry-status-new-wrapper">
+                <span>{{ copy.selectNewStatus }}</span>
+                <select v-model="pendingStatus" class="text-input">
+                  <option :value="null" disabled selected>{{ copy.selectNewStatus }}</option>
+                  <option v-for="status in availableStatuses.filter(s => s !== selectedInquiry?.status)" :key="status" :value="status">
+                    {{ statusLabelMap[status] }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="inquiry-modal-action-section">
             <button
-              v-for="status in availableStatuses"
-              :key="`detail-${selectedInquiry.id}-${status}`"
               type="button"
-              class="secondary-button inquiry-status-button"
-              :class="{ 'inquiry-status-button--active': selectedInquiry.status === status }"
-              :disabled="updatingInquiryId === selectedInquiry.id || selectedInquiry.status === status"
-              @click="updateInquiryStatus(selectedInquiry.id, status)"
+              class="primary-button"
+              :disabled="updatingInquiryId === selectedInquiry.id || !pendingStatus"
+              @click="pendingStatus && updateInquiryStatus(selectedInquiry.id, pendingStatus)"
             >
-              {{ updatingInquiryId === selectedInquiry.id && selectedInquiry.status !== status ? copy.saving : statusLabelMap[status] }}
+              <Icon :icon="mdiRefresh" :class="{ 'inquiry-spin': updatingInquiryId === selectedInquiry.id }" />
+              {{ updatingInquiryId === selectedInquiry.id ? copy.saving : copy.saveChanges }}
             </button>
           </div>
         </div>
@@ -839,3 +905,294 @@ onUnmounted(() => {
     </section>
   </AppShell>
 </template>
+
+<style scoped>
+.inquiry-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.inquiry-modal-info-section,
+.inquiry-modal-notes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inquiry-modal-info-section h3,
+.inquiry-modal-notes-section h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.inquiry-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.inquiry-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-soft);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-soft);
+  transition: all 0.2s ease;
+}
+
+.inquiry-info-card:hover {
+  border-color: var(--border);
+  background: var(--bg-elevated);
+}
+
+.inquiry-info-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: var(--primary-soft);
+  border-radius: 0.375rem;
+  color: var(--primary);
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.inquiry-info-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.inquiry-info-card__content span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.inquiry-info-card__content strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.inquiry-info-card__content small {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inquiry-notes-text {
+  padding: 1rem;
+  background: var(--bg-soft);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-soft);
+  font-size: 0.875rem;
+  color: var(--text);
+  line-height: 1.6;
+  margin: 0;
+  min-height: 3rem;
+}
+
+.inquiry-modal-card__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.inquiry-modal-action-section {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.inquiry-status-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--bg-soft);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-soft);
+}
+
+.inquiry-status-current-wrapper,
+.inquiry-status-new-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.inquiry-status-current-wrapper span,
+.inquiry-status-new-wrapper span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.inquiry-status-badge {
+  padding: 0.5rem 0.875rem;
+  background: var(--bg);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inquiry-status-badge.status-badge {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.inquiry-status-badge.status-badge--success {
+  background: var(--success-soft);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.inquiry-status-badge.status-badge--soft {
+  background: var(--warning-soft);
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.inquiry-status-badge.status-badge--warning {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.inquiry-status-new-wrapper .text-input {
+  width: 100%;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.inquiry-status-new-wrapper .text-input:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.inquiry-status-new-wrapper .text-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.inquiry-status-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.inquiry-status-line {
+  width: 2px;
+  height: 1rem;
+  background: var(--border);
+}
+
+.inquiry-status-icon {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.inquiry-modal-action-section .primary-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.inquiry-modal-action-section .primary-button:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+}
+
+.inquiry-modal-action-section .primary-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.inquiry-modal-action-section .primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--text-muted);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.inquiry-spin {
+  animation: spin 1s linear infinite;
+}
+
+@media (max-width: 640px) {
+  .inquiry-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inquiry-status-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inquiry-status-divider {
+    flex-direction: row;
+    height: 2px;
+    width: 100%;
+  }
+
+  .inquiry-status-line {
+    width: 1rem;
+    height: 2px;
+  }
+
+  .inquiry-modal-action-section .primary-button {
+    width: 100%;
+  }
+}
+</style>

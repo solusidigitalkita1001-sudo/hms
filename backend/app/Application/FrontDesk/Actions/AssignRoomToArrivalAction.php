@@ -6,6 +6,9 @@ use App\Application\FrontDesk\Services\FrontDeskStatusRecorder;
 use App\Domain\FrontDesk\Models\FrontDeskAuditLog;
 use App\Domain\Reservation\Models\Reservation;
 use App\Domain\Reservation\Models\ReservationCheckinSession;
+use App\Domain\Room\Enums\HousekeepingStatus;
+use App\Domain\Room\Enums\OccupancyStatus;
+use App\Domain\Room\Enums\ServiceabilityStatus;
 use App\Domain\Room\Models\RoomAvailabilityLock;
 use App\Domain\Room\Models\Room;
 use Illuminate\Support\Facades\DB;
@@ -33,19 +36,19 @@ class AssignRoomToArrivalAction
                 ]);
             }
 
-            if (! $room->is_active || $room->serviceability_status !== 'normal') {
+            if (! $room->is_active || $room->serviceability_status->value !== ServiceabilityStatus::Normal->value) {
                 throw ValidationException::withMessages([
                     'room_id' => 'Kamar tidak bisa diassign karena sedang tidak aktif atau diblokir.',
                 ]);
             }
 
-            if (! in_array($room->housekeeping_status, ['clean', 'inspected'], true)) {
+            if (! in_array($room->housekeeping_status->value, [HousekeepingStatus::Clean->value, HousekeepingStatus::Inspected->value], true)) {
                 throw ValidationException::withMessages([
                     'room_id' => 'Kamar belum siap dipakai karena housekeeping belum release.',
                 ]);
             }
 
-            if (! in_array($room->current_status, ['available', 'reserved'], true)) {
+            if (! in_array($room->current_status->value, [OccupancyStatus::Available->value, OccupancyStatus::Reserved->value], true)) {
                 throw ValidationException::withMessages([
                     'room_id' => 'Kamar belum siap dipakai untuk assignment.',
                 ]);
@@ -57,16 +60,16 @@ class AssignRoomToArrivalAction
                 ? 'arrived'
                 : $previousReservationStatus;
 
-            if ($previousRoom && $previousRoom->id !== $room->id && $previousRoom->current_status === 'reserved') {
+            if ($previousRoom && $previousRoom->id !== $room->id && ($previousRoom->current_status?->value ?? $previousRoom->current_status) === OccupancyStatus::Reserved->value) {
                 $previousRoom->forceFill([
-                    'current_status' => 'available',
+                    'current_status' => OccupancyStatus::Available,
                 ])->save();
 
                 $this->statusRecorder->recordRoomTransition(
                     $previousRoom,
                     'occupancy',
-                    'reserved',
-                    'available',
+                    OccupancyStatus::Reserved->value,
+                    OccupancyStatus::Available->value,
                     $actorUserId,
                     'Room released due to reassignment.',
                     Reservation::class,
@@ -91,7 +94,7 @@ class AssignRoomToArrivalAction
 
             $roomPreviousStatus = $room->current_status;
             $room->forceFill([
-                'current_status' => 'reserved',
+                'current_status' => OccupancyStatus::Reserved,
             ])->save();
 
             ReservationCheckinSession::query()->updateOrCreate(
@@ -126,8 +129,8 @@ class AssignRoomToArrivalAction
             $this->statusRecorder->recordRoomTransition(
                 $room,
                 'occupancy',
-                $roomPreviousStatus,
-                'reserved',
+                $roomPreviousStatus?->value ?? $roomPreviousStatus,
+                OccupancyStatus::Reserved->value,
                 $actorUserId,
                 $payload['notes'] ?? 'Room assigned to reservation.',
                 Reservation::class,

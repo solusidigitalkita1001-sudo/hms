@@ -3,6 +3,9 @@
 namespace App\Application\FrontDesk\Services;
 
 use App\Domain\Reservation\Models\Reservation;
+use App\Domain\Room\Enums\HousekeepingStatus;
+use App\Domain\Room\Enums\OccupancyStatus;
+use App\Domain\Room\Enums\ServiceabilityStatus;
 use App\Domain\Room\Models\Room;
 use Illuminate\Support\Collection;
 
@@ -14,11 +17,11 @@ class AssignableRoomService
             ->with('roomType:id,code,name')
             ->where('property_id', $reservation->property_id)
             ->where('is_active', true)
-            ->where('serviceability_status', 'normal')
-            ->whereIn('housekeeping_status', ['clean', 'inspected'])
+            ->where('serviceability_status', ServiceabilityStatus::Normal)
+            ->whereIn('housekeeping_status', [HousekeepingStatus::Clean, HousekeepingStatus::Inspected])
             ->where(function ($query) use ($reservation): void {
                 $query
-                    ->whereIn('current_status', ['available', 'reserved']);
+                    ->whereIn('current_status', [OccupancyStatus::Available, OccupancyStatus::Reserved]);
 
                 if ($reservation->assigned_room_id) {
                     $query->orWhere('id', $reservation->assigned_room_id);

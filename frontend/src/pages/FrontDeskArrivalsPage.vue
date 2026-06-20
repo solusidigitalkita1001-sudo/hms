@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import mdiAccountBadgeOutline from '@iconify-icons/mdi/account-badge-outline'
+import mdiAccountPlusOutline from '@iconify-icons/mdi/account-plus-outline'
 import mdiBedOutline from '@iconify-icons/mdi/bed-outline'
 import mdiCheckCircleOutline from '@iconify-icons/mdi/check-circle-outline'
 import mdiClose from '@iconify-icons/mdi/close'
@@ -156,6 +157,31 @@ const completeForm = reactive({
   notes: '',
 })
 
+// Walk-in state
+const walkInModalOpen = ref(false)
+const walkInSubmitting = ref(false)
+const walkInForm = reactive({
+  guest_full_name: '',
+  guest_phone: '',
+  guest_email: '',
+  guest_id_type: 'ktp',
+  guest_id_number: '',
+  room_type_id: '',
+  room_id: '',
+  check_in_date: new Date().toISOString().split('T')[0],
+  check_out_date: '',
+  adult_count: 1,
+  child_count: 0,
+  rate_per_night: 0,
+  deposit_amount: 0,
+  payment_method_code: 'cash',
+  payment_amount: 0,
+  special_requests: '',
+  internal_notes: '',
+  auto_check_in: false,
+  create_invoice: true,
+})
+
 const copy = computed(() => {
   if (isEnglish.value) {
     return {
@@ -256,6 +282,40 @@ const copy = computed(() => {
       checkinNotes: 'Check-in notes',
       checkinNotesPlaceholder: 'Operational notes during check-in',
       completing: 'Completing...',
+      walkIn: 'Walk-in',
+      walkInTitle: 'Create Walk-in Reservation',
+      guestInformation: 'Guest Information',
+      roomSelection: 'Room & Dates',
+      rateAndPayment: 'Rate & Payment',
+      walkinGuestName: 'Guest name',
+      walkinGuestNamePlaceholder: 'Guest full name',
+      walkinGuestPhone: 'Phone',
+      walkinGuestPhonePlaceholder: 'Guest phone number',
+      walkinGuestEmail: 'Email',
+      walkinGuestEmailPlaceholder: 'Guest email',
+      walkinIdType: 'ID type',
+      walkinIdNumber: 'ID number',
+      walkinRoomType: 'Room type ID',
+      walkinRoomTypePlaceholder: 'Room type ID',
+      walkinRoomId: 'Room ID',
+      walkinRoomPlaceholder: 'Room ID (optional)',
+      walkinCheckInDate: 'Check-in date',
+      walkinCheckOutDate: 'Check-out date',
+      walkinAdults: 'adults',
+      walkinChildren: 'children',
+      walkinRatePerNight: 'Rate per night',
+      walkinDepositAmount: 'Deposit amount',
+      walkinPaymentMethod: 'Payment method',
+      walkinPaymentAmount: 'Payment amount',
+      walkinAutoCheckIn: 'Auto check-in',
+      walkinCreateInvoice: 'Create invoice',
+      walkinSpecialRequests: 'Special requests',
+      walkinSpecialRequestsPlaceholder: 'Special requests...',
+      walkinInternalNotes: 'Internal notes',
+      walkinInternalNotesPlaceholder: 'Internal notes...',
+      submitting: 'Submitting...',
+      walkInSuccess: 'Walk-in reservation created successfully.',
+      walkInFailed: 'Failed to create walk-in reservation.',
     }
   }
 
@@ -357,6 +417,40 @@ const copy = computed(() => {
     checkinNotes: 'Catatan check-in',
     checkinNotesPlaceholder: 'Catatan operasional saat check-in',
     completing: 'Memproses...',
+    walkIn: 'Walk-in',
+    walkInTitle: 'Buat Reservasi Walk-in',
+    guestInformation: 'Informasi Tamu',
+    roomSelection: 'Kamar & Tanggal',
+    rateAndPayment: 'Rate & Pembayaran',
+    walkinGuestName: 'Nama tamu',
+    walkinGuestNamePlaceholder: 'Nama lengkap tamu',
+    walkinGuestPhone: 'Phone',
+    walkinGuestPhonePlaceholder: 'Nomor HP tamu',
+    walkinGuestEmail: 'Email',
+    walkinGuestEmailPlaceholder: 'Email tamu',
+    walkinIdType: 'Jenis identitas',
+    walkinIdNumber: 'Nomor identitas',
+    walkinRoomType: 'Room type ID',
+    walkinRoomTypePlaceholder: 'Room type ID',
+    walkinRoomId: 'Room ID',
+    walkinRoomPlaceholder: 'Room ID (opsional)',
+    walkinCheckInDate: 'Tanggal check-in',
+    walkinCheckOutDate: 'Tanggal check-out',
+    walkinAdults: 'dewasa',
+    walkinChildren: 'anak',
+    walkinRatePerNight: 'Rate per malam',
+    walkinDepositAmount: 'Deposit',
+    walkinPaymentMethod: 'Metode pembayaran',
+    walkinPaymentAmount: 'Jumlah pembayaran',
+    walkinAutoCheckIn: 'Auto check-in',
+    walkinCreateInvoice: 'Buat invoice',
+    walkinSpecialRequests: 'Permintaan khusus',
+    walkinSpecialRequestsPlaceholder: 'Permintaan khusus...',
+    walkinInternalNotes: 'Catatan internal',
+    walkinInternalNotesPlaceholder: 'Catatan internal...',
+    submitting: 'Menyimpan...',
+    walkInSuccess: 'Reservasi walk-in berhasil dibuat.',
+    walkInFailed: 'Gagal membuat reservasi walk-in.',
   }
 })
 
@@ -741,6 +835,93 @@ const completeCheckin = async () => {
   }
 }
 
+// Walk-in functions
+const resetWalkInForm = () => {
+  walkInForm.guest_full_name = ''
+  walkInForm.guest_phone = ''
+  walkInForm.guest_email = ''
+  walkInForm.guest_id_type = 'ktp'
+  walkInForm.guest_id_number = ''
+  walkInForm.room_type_id = ''
+  walkInForm.room_id = ''
+  walkInForm.check_in_date = new Date().toISOString().split('T')[0]
+  walkInForm.check_out_date = ''
+  walkInForm.adult_count = 1
+  walkInForm.child_count = 0
+  walkInForm.rate_per_night = 0
+  walkInForm.deposit_amount = 0
+  walkInForm.payment_method_code = 'cash'
+  walkInForm.payment_amount = 0
+  walkInForm.special_requests = ''
+  walkInForm.internal_notes = ''
+  walkInForm.auto_check_in = false
+  walkInForm.create_invoice = true
+}
+
+const openWalkInModal = () => {
+  resetWalkInForm()
+  walkInModalOpen.value = true
+}
+
+const closeWalkInModal = () => {
+  walkInModalOpen.value = false
+}
+
+const submitWalkIn = async () => {
+  if (!walkInForm.guest_full_name.trim() || !walkInForm.guest_phone.trim() || !walkInForm.check_out_date) return
+
+  walkInSubmitting.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
+
+  try {
+    const response = await fetch(buildApiUrl('/api/v1/front-desk/walk-in?property_id=1'), {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({
+        guest_full_name: walkInForm.guest_full_name,
+        guest_phone: walkInForm.guest_phone,
+        guest_email: walkInForm.guest_email || null,
+        guest_id_type: walkInForm.guest_id_type || null,
+        guest_id_number: walkInForm.guest_id_number || null,
+        room_type_id: walkInForm.room_type_id ? Number(walkInForm.room_type_id) : null,
+        room_id: walkInForm.room_id ? Number(walkInForm.room_id) : null,
+        check_in_date: walkInForm.check_in_date,
+        check_out_date: walkInForm.check_out_date,
+        adult_count: walkInForm.adult_count,
+        child_count: walkInForm.child_count,
+        rate_per_night: walkInForm.rate_per_night > 0 ? walkInForm.rate_per_night : null,
+        deposit_amount: walkInForm.deposit_amount > 0 ? walkInForm.deposit_amount : null,
+        payment_method_code: walkInForm.payment_method_code || null,
+        payment_amount: walkInForm.payment_amount > 0 ? walkInForm.payment_amount : null,
+        special_requests: walkInForm.special_requests || null,
+        internal_notes: walkInForm.internal_notes || null,
+        auto_check_in: walkInForm.auto_check_in,
+        create_invoice: walkInForm.create_invoice,
+      }),
+    })
+
+    const payload = await parseJsonResponse<{
+      success?: boolean
+      message?: string
+      errors?: Record<string, string[]>
+    }>(response, 'Invalid walk-in response.')
+
+    if (!response.ok || !payload.success) {
+      const firstError = Object.values(payload.errors ?? {})[0]?.[0]
+      throw new Error(firstError || payload.message || copy.value.walkInFailed)
+    }
+
+    successMessage.value = payload.message || copy.value.walkInSuccess
+    closeWalkInModal()
+    await loadArrivals('refresh')
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : copy.value.walkInFailed
+  } finally {
+    walkInSubmitting.value = false
+  }
+}
+
 watch(() => filters.status, () => {
   tableQuery.page = 1
   loadArrivals('refresh', false)
@@ -784,6 +965,10 @@ onUnmounted(() => {
           </div>
 
           <div class="action-pair">
+            <button type="button" class="primary-button" @click="openWalkInModal">
+              <Icon :icon="mdiAccountPlusOutline" />
+              {{ copy.walkIn }}
+            </button>
             <button type="button" class="secondary-button" :disabled="refreshing" @click="loadArrivals('refresh')">
               <Icon :icon="mdiRefresh" />
               {{ refreshing ? copy.refreshing : copy.refreshQueue }}
@@ -1081,6 +1266,169 @@ onUnmounted(() => {
         </section>
       </article>
     </section>
+
+    <!-- Walk-in Modal -->
+    <div v-if="walkInModalOpen" class="walkin-modal-backdrop" @click="closeWalkInModal"></div>
+
+    <section v-if="walkInModalOpen" class="walkin-modal-shell">
+      <article class="walkin-modal-card" @click.stop>
+        <div class="walkin-modal-card__header">
+          <div>
+            <span class="section-kicker">{{ copy.walkIn }}</span>
+            <h2>{{ copy.walkInTitle }}</h2>
+          </div>
+
+          <button type="button" class="icon-button" @click="closeWalkInModal">
+            <Icon :icon="mdiClose" />
+          </button>
+        </div>
+
+        <!-- Step 1: Guest Info -->
+        <section class="arrival-workspace-block">
+          <div class="arrival-workspace-block__header">
+            <div>
+              <span class="section-kicker">{{ copy.step1 }}</span>
+              <h3>{{ copy.guestInformation }}</h3>
+            </div>
+            <Icon :icon="mdiAccountPlusOutline" />
+          </div>
+
+          <div class="arrival-form-grid">
+            <label class="field">
+              <span>{{ copy.walkinGuestName }}</span>
+              <input v-model="walkInForm.guest_full_name" type="text" class="text-input" :placeholder="copy.walkinGuestNamePlaceholder" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinGuestPhone }}</span>
+              <input v-model="walkInForm.guest_phone" type="text" class="text-input" :placeholder="copy.walkinGuestPhonePlaceholder" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinGuestEmail }}</span>
+              <input v-model="walkInForm.guest_email" type="email" class="text-input" :placeholder="copy.walkinGuestEmailPlaceholder" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinIdType }}</span>
+              <input v-model="walkInForm.guest_id_type" type="text" class="text-input" placeholder="ktp" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinIdNumber }}</span>
+              <input v-model="walkInForm.guest_id_number" type="text" class="text-input" />
+            </label>
+          </div>
+        </section>
+
+        <!-- Step 2: Room & Dates -->
+        <section class="arrival-workspace-block">
+          <div class="arrival-workspace-block__header">
+            <div>
+              <span class="section-kicker">{{ copy.step2 }}</span>
+              <h3>{{ copy.roomSelection }}</h3>
+            </div>
+            <Icon :icon="mdiBedOutline" />
+          </div>
+
+          <div class="arrival-form-grid">
+            <label class="field">
+              <span>{{ copy.walkinRoomType }}</span>
+              <input v-model="walkInForm.room_type_id" type="number" class="text-input" :placeholder="copy.walkinRoomTypePlaceholder" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinRoomId }}</span>
+              <input v-model="walkInForm.room_id" type="number" class="text-input" :placeholder="copy.walkinRoomPlaceholder" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinCheckInDate }}</span>
+              <input v-model="walkInForm.check_in_date" type="date" class="text-input" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinCheckOutDate }}</span>
+              <input v-model="walkInForm.check_out_date" type="date" class="text-input" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinAdults }}</span>
+              <input v-model.number="walkInForm.adult_count" type="number" min="1" class="text-input" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinChildren }}</span>
+              <input v-model.number="walkInForm.child_count" type="number" min="0" class="text-input" />
+            </label>
+          </div>
+        </section>
+
+        <!-- Step 3: Rate & Payment -->
+        <section class="arrival-workspace-block">
+          <div class="arrival-workspace-block__header">
+            <div>
+              <span class="section-kicker">{{ copy.step3 }}</span>
+              <h3>{{ copy.rateAndPayment }}</h3>
+            </div>
+            <Icon :icon="mdiAccountBadgeOutline" />
+          </div>
+
+          <div class="arrival-form-grid">
+            <label class="field">
+              <span>{{ copy.walkinRatePerNight }}</span>
+              <input v-model.number="walkInForm.rate_per_night" type="number" min="0" class="text-input" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinDepositAmount }}</span>
+              <input v-model.number="walkInForm.deposit_amount" type="number" min="0" class="text-input" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinPaymentMethod }}</span>
+              <select v-model="walkInForm.payment_method_code" class="text-input">
+                <option value="cash">Cash</option>
+                <option value="transfer">Transfer</option>
+                <option value="card">Card</option>
+                <option value="qris">QRIS</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinPaymentAmount }}</span>
+              <input v-model.number="walkInForm.payment_amount" type="number" min="0" class="text-input" />
+            </label>
+          </div>
+
+          <div class="arrival-confirm-grid">
+            <label class="arrival-check">
+              <input v-model="walkInForm.auto_check_in" type="checkbox" />
+              <span>{{ copy.walkinAutoCheckIn }}</span>
+            </label>
+            <label class="arrival-check">
+              <input v-model="walkInForm.create_invoice" type="checkbox" />
+              <span>{{ copy.walkinCreateInvoice }}</span>
+            </label>
+          </div>
+        </section>
+
+        <!-- Notes -->
+        <section class="arrival-workspace-block">
+          <div class="arrival-form-grid">
+            <label class="field">
+              <span>{{ copy.walkinSpecialRequests }}</span>
+              <input v-model="walkInForm.special_requests" type="text" class="text-input" :placeholder="copy.walkinSpecialRequestsPlaceholder" />
+            </label>
+            <label class="field">
+              <span>{{ copy.walkinInternalNotes }}</span>
+              <input v-model="walkInForm.internal_notes" type="text" class="text-input" :placeholder="copy.walkinInternalNotesPlaceholder" />
+            </label>
+          </div>
+        </section>
+
+        <!-- Submit -->
+        <div class="action-pair">
+          <button type="button" class="secondary-button" @click="closeWalkInModal">{{ isEnglish ? 'Cancel' : 'Batal' }}</button>
+          <button
+            type="button"
+            class="primary-button"
+            :disabled="walkInSubmitting || !walkInForm.guest_full_name.trim() || !walkInForm.guest_phone.trim() || !walkInForm.check_out_date"
+            @click="submitWalkIn"
+          >
+            {{ walkInSubmitting ? copy.submitting : copy.walkIn }}
+          </button>
+        </div>
+      </article>
+    </section>
   </AppShell>
 </template>
 
@@ -1123,8 +1471,7 @@ onUnmounted(() => {
 .arrival-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.42);
-  backdrop-filter: blur(8px);
+  background: rgba(26, 20, 18, 0.4);
   z-index: 160;
 }
 
@@ -1167,10 +1514,6 @@ onUnmounted(() => {
 
 .arrival-summary-card,
 .arrival-workspace-block {
-  border-radius: 22px;
-  padding: 18px;
-  background: color-mix(in srgb, var(--color-surface-muted) 88%, transparent);
-  border: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1216,5 +1559,43 @@ onUnmounted(() => {
   .arrival-action-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.walkin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 20, 18, 0.4);
+  z-index: 160;
+}
+
+.walkin-modal-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 170;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+}
+
+.walkin-modal-card {
+  width: min(860px, 100%);
+  max-height: calc(100vh - 64px);
+  overflow: auto;
+  border-radius: 28px;
+  padding: 24px;
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.walkin-modal-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 </style>

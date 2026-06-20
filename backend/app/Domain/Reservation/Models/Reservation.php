@@ -46,6 +46,10 @@ class Reservation extends Model
         'no_show_at',
         'status_reason',
         'created_by_user_id',
+        'booker_name',
+        'booker_phone',
+        'is_booking_for_other',
+        'guest_name_on_booking',
     ];
 
     protected function casts(): array
@@ -64,6 +68,7 @@ class Reservation extends Model
             'cancelled_at' => 'datetime',
             'expired_at' => 'datetime',
             'no_show_at' => 'datetime',
+            'is_booking_for_other' => 'boolean',
         ];
     }
 
@@ -125,5 +130,15 @@ class Reservation extends Model
     public function availabilityLocks(): HasMany
     {
         return $this->hasMany(RoomAvailabilityLock::class);
+    }
+
+    public function assetLoans(): HasMany
+    {
+        return $this->hasMany(\App\Domain\Inventory\Models\AssetLoan::class);
+    }
+
+    public function conditionReports(): HasMany
+    {
+        return $this->hasMany(\App\Domain\Room\Models\RoomConditionReport::class);
     }
 }

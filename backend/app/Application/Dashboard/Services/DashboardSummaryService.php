@@ -6,7 +6,9 @@ use App\Application\Dashboard\DataTransferObjects\DashboardSummaryData;
 use App\Domain\Billing\Models\Invoice;
 use App\Domain\Housekeeping\Models\HousekeepingTask;
 use App\Domain\Inventory\Models\InventoryItem;
-use App\Domain\Room\Enums\RoomStatus;
+use App\Domain\Room\Enums\HousekeepingStatus;
+use App\Domain\Room\Enums\OccupancyStatus;
+use App\Domain\Room\Enums\ServiceabilityStatus;
 use App\Domain\Room\Models\Room;
 use Carbon\CarbonImmutable;
 
@@ -17,10 +19,10 @@ class DashboardSummaryService
         $today = CarbonImmutable::today();
 
         return new DashboardSummaryData(
-            availableRooms: Room::query()->where('current_status', RoomStatus::Available->value)->count(),
-            occupiedRooms: Room::query()->where('current_status', RoomStatus::Occupied->value)->count(),
-            dirtyRooms: Room::query()->where('current_status', RoomStatus::Dirty->value)->count(),
-            maintenanceRooms: Room::query()->where('current_status', RoomStatus::Maintenance->value)->count(),
+            availableRooms: Room::query()->where('current_status', OccupancyStatus::Available)->count(),
+            occupiedRooms: Room::query()->where('current_status', OccupancyStatus::Occupied)->count(),
+            dirtyRooms: Room::query()->where('housekeeping_status', HousekeepingStatus::Dirty)->count(),
+            maintenanceRooms: Room::query()->where('serviceability_status', ServiceabilityStatus::Maintenance)->count(),
             pendingHousekeepingTasks: HousekeepingTask::query()->whereIn('task_status', ['pending', 'assigned', 'in_progress'])->count(),
             lowStockItems: InventoryItem::query()->whereColumn('current_stock', '<=', 'minimum_stock')->count(),
             todayRevenue: (float) Invoice::query()

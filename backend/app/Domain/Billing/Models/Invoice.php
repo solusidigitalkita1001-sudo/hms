@@ -68,4 +68,39 @@ class Invoice extends Model
     {
         return $this->hasMany(InvoiceStatusLog::class);
     }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+
+    /**
+     * Recalculate invoice totals based on items
+     */
+    public function recalculateTotals(): void
+    {
+        $items = $this->items;
+
+        $this->subtotal_amount = $items->sum(fn (InvoiceItem $item) => $item->getSubtotalAttribute());
+        $this->tax_amount = $items->sum('tax_amount');
+        $this->discount_amount = $items->sum('discount_amount');
+        $this->grand_total = $this->subtotal_amount + $this->tax_amount;
+        $this->remaining_amount = $this->grand_total - $this->paid_amount;
+
+        $this->updateInvoiceStatus();
+    }
+
+    /**
+     * Update invoice status based on payment
+     */
+    protected function updateInvoiceStatus(): void
+    {
+        if ($this->paid_amount >= $this->grand_total) {
+            $this->invoice_status = 'paid';
+        } elseif ($this->paid_amount > 0) {
+            $this->invoice_status = 'partial';
+        } else {
+            $this->invoice_status = 'unpaid';
+        }
+    }
 }
