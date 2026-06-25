@@ -15,7 +15,7 @@ import { buildApiUrl } from '../lib/api'
 
 const route = useRoute()
 const router = useRouter()
-const { t, locale } = useAppLocale()
+const { text: t, language } = useAppLocale()
 
 const propertyCode = route.params.propertyCode as string
 
@@ -32,7 +32,7 @@ const loginForm = reactive({
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString(locale.value === 'en' ? 'en-US' : 'id-ID', {
+  return d.toLocaleDateString(language.value === 'en' ? 'en-US' : 'id-ID', {
     weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
   })
 }

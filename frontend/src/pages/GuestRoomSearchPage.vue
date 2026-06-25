@@ -11,7 +11,6 @@ import mdiTelevision from '@iconify-icons/mdi/television'
 import mdiShower from '@iconify-icons/mdi/shower'
 import mdiSmokingOff from '@iconify-icons/mdi/smoking-off'
 import mdiSmoking from '@iconify-icons/mdi/smoking'
-import mdiCurrencyUsd from '@iconify-icons/mdi/currency-usd'
 import mdiChevronLeft from '@iconify-icons/mdi/chevron-left'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -21,7 +20,7 @@ import { buildApiUrl } from '../lib/api'
 
 const route = useRoute()
 const router = useRouter()
-const { t, locale } = useAppLocale()
+const { text: t } = useAppLocale()
 
 const propertyCode = route.params.propertyCode as string
 
@@ -39,17 +38,6 @@ const error = ref('')
 
 function formatCurrency(amount: number): string {
   return `Rp ${amount.toLocaleString('id-ID')}`
-}
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return ''
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString(locale.value === 'en' ? 'en-US' : 'id-ID', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
 }
 
 async function doSearch() {

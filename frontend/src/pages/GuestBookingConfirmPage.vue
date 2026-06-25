@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import mdiCheckCircleOutline from '@iconify-icons/mdi/check-circle-outline'
-import mdiBedOutline from '@iconify-icons/mdi/bed-outline'
-import mdiCalendarRangeOutline from '@iconify-icons/mdi/calendar-range-outline'
 import mdiHomeOutline from '@iconify-icons/mdi/home-outline'
 import mdiPrinter from '@iconify-icons/mdi/printer'
-import mdiShareVariant from '@iconify-icons/mdi/share-variant'
 import mdiWhatsapp from '@iconify-icons/mdi/whatsapp'
 import mdiQrcode from '@iconify-icons/mdi/qrcode'
 import { onMounted, ref } from 'vue'
@@ -16,7 +13,7 @@ import { buildApiUrl } from '../lib/api'
 
 const route = useRoute()
 const router = useRouter()
-const { t, locale } = useAppLocale()
+const { text: t, language } = useAppLocale()
 
 const propertyCode = route.params.propertyCode as string
 const bookingCode = route.params.bookingCode as string
@@ -28,13 +25,9 @@ const error = ref('')
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString(locale.value === 'en' ? 'en-US' : 'id-ID', {
+  return d.toLocaleDateString(language.value === 'en' ? 'en-US' : 'id-ID', {
     weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
   })
-}
-
-function formatCurrency(amount: number): string {
-  return `Rp ${amount.toLocaleString('id-ID')}`
 }
 
 async function loadBooking() {

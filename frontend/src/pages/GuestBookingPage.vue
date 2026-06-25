@@ -7,8 +7,6 @@ import mdiCheckCircleOutline from '@iconify-icons/mdi/check-circle-outline'
 import mdiArrowRight from '@iconify-icons/mdi/arrow-right'
 import mdiArrowLeft from '@iconify-icons/mdi/arrow-left'
 import mdiCalendarRangeOutline from '@iconify-icons/mdi/calendar-range-outline'
-import mdiWifi from '@iconify-icons/mdi/wifi'
-import mdiAirConditioner from '@iconify-icons/mdi/air-conditioner'
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -17,7 +15,7 @@ import { buildApiUrl } from '../lib/api'
 
 const route = useRoute()
 const router = useRouter()
-const { t, locale } = useAppLocale()
+const { text: t, language } = useAppLocale()
 
 const propertyCode = route.params.propertyCode as string
 const roomTypeCode = route.query.room_type as string
@@ -31,7 +29,6 @@ const step = ref(1)
 const loading = ref(false)
 const error = ref('')
 const bookingResult = ref<any>(null)
-const roomType = ref<any>(null)
 
 const nights = computed(() => {
   if (!checkIn || !checkOut) return 1
@@ -62,7 +59,7 @@ function formatCurrency(amount: number): string {
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString(locale.value === 'en' ? 'en-US' : 'id-ID', {
+  return d.toLocaleDateString(language.value === 'en' ? 'en-US' : 'id-ID', {
     weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
   })
 }
@@ -132,11 +129,6 @@ function goToConfirm() {
     })
   }
 }
-
-const roomTypeInfo = computed(() => ({
-  name: route.query.room_type_name || roomTypeCode,
-  capacity: route.query.capacity || '2',
-}))
 </script>
 
 <template>

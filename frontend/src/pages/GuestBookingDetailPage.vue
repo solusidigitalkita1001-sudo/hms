@@ -8,7 +8,6 @@ import mdiHomeOutline from '@iconify-icons/mdi/home-outline'
 import mdiClipboardListOutline from '@iconify-icons/mdi/clipboard-list-outline'
 import mdiFileDocumentOutline from '@iconify-icons/mdi/file-document-outline'
 import mdiAlertOutline from '@iconify-icons/mdi/alert-outline'
-import mdiCheckCircleOutline from '@iconify-icons/mdi/check-circle-outline'
 import mdiQrcode from '@iconify-icons/mdi/qrcode'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -18,7 +17,7 @@ import { buildApiUrl } from '../lib/api'
 
 const route = useRoute()
 const router = useRouter()
-const { t, locale } = useAppLocale()
+const { text: t, language } = useAppLocale()
 
 const propertyCode = route.params.propertyCode as string
 const bookingId = parseInt(route.params.bookingId as string)
@@ -30,7 +29,7 @@ const error = ref('')
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString(locale.value === 'en' ? 'en-US' : 'id-ID', {
+  return d.toLocaleDateString(language.value === 'en' ? 'en-US' : 'id-ID', {
     weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
   })
 }
@@ -82,10 +81,6 @@ function goToConditionReport() {
     name: 'guest-condition-report',
     params: { propertyCode, bookingId },
   })
-}
-
-function goToInvoice() {
-  router.push({ name: 'guest-portal', params: { propertyCode } })
 }
 
 onMounted(loadDetail)

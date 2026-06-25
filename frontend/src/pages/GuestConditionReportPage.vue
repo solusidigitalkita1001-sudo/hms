@@ -14,7 +14,7 @@ import { buildApiUrl } from '../lib/api'
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useAppLocale()
+const { text: t } = useAppLocale()
 
 const propertyCode = route.params.propertyCode as string
 const bookingId = parseInt(route.params.bookingId as string) || 0
